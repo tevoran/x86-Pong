@@ -42,25 +42,37 @@ main_loop:
 	CLS
 
 	;drawing the players
-	mov al, 0x00
-	mov byte [i], al ;reset loop variable
+	mov ax, 0x00
+	mov word [i], ax ;reset loop variable
 	player_draw_loop:
 		;calculating framebuffer offset
 		mov ax, RES_X
 		mov word bx, [player_y]
+		add word bx, [i]
 		mul bx
 		add word ax, [player_x]
-		mov di, ax
+		mov di, ax ;writing the framebuffer offset for the actual writing purposes
 		mov al, YELLOW ;color code within the 256 color palette
 		mov cx, PLAYER_WIDTH ;number of repitions in x direction
 		repe stosb ;write the line of player paddle
+
+	;incrementing loop counting variable
+	mov word ax, [i] ;reading loop variable
+	inc ax ;incrementing loop variable
+	mov word [i], ax ;writing loop variable
+	cmp ax, PLAYER_HEIGHT ;check if loop counter is smaller than PLAYER_HEIGHT
+	jl player_draw_loop	;jump if less
+
+	.stop:
+	jmp .stop
+
 ;jmp main_loop
-hlt
+
 
 .data:
-i db 0 ;loop variable
+i dw 0 ;loop variable
 player_x dw 300
-player_y dw 150
+player_y dw 0
 
 ;padding to fill up the bootsector
 times 510 - ($-$$) db 0
