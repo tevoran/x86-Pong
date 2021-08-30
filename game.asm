@@ -11,6 +11,7 @@
 %define PLAYER_WIDTH 0x06
 %define PLAYER_HEIGHT 0x20
 %define PLAYER_LOWEST 168
+%define PLAYER_HIGHEST 0xFFFF
 
 %macro CLS 0
 	mov di, 0x00
@@ -103,20 +104,31 @@ main_loop:
 
 	;keeping player 1 inside the screen
 	mov word ax, [player1_y]
-	inc ax 
+	dec ax 
+	;if player is too low on the screen set him a bit higher
 	cmp ax, PLAYER_LOWEST
-	;if player is too low on the screen reset him a bit higher
 	jae .player1_too_low
 	.player1_too_low_continue:
+
+	;if player is too high on the screen set him a bit lower
+	cmp ax, 0
+	je .player1_too_high
+	.player1_too_high_continue:
 	mov word [player1_y], ax
 	
 	;waiting for the next frame	to start
 	WAIT_FOR_RTC
 jmp main_loop
 
+;if's
 .player1_too_low:
 mov ax, PLAYER_LOWEST
 jmp .player1_too_low_continue
+
+.player1_too_high:
+mov ax, 1
+jmp .player1_too_high_continue
+
 
 .data:
 timer_current dw 0
