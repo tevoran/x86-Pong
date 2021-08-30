@@ -42,34 +42,70 @@ main_loop:
 	je .player1_input_s
 	.player1_input_s_continue:
 
+	cmp ah, 0x48 ;Key ARROW UP
+	je .player2_input_up
+	.player2_input_up_continue:
+
+	cmp ah, 0x50 ;Key ARROW DOWN
+	je .player2_input_down
+	.player2_input_down_continue:
+
 	PLAYER1_SCREEN_COLLISION
+	PLAYER2_SCREEN_COLLISION
 	
 	;waiting for the next frame	to start
 	WAIT_FOR_RTC
 jmp main_loop
 
 ;SCREEN COLLISION IFS
+;if player 1 is too low on the screen
 .player1_too_low:
 mov ax, PLAYER_LOWEST
 jmp .player1_too_low_continue
 
+;if player 1 is too high on the screen
 .player1_too_high:
 mov ax, 1
 jmp .player1_too_high_continue
 
+;if player 2 is too low on the screen
+.player2_too_low:
+mov ax, PLAYER_LOWEST
+jmp .player2_too_low_continue
+
+;if player 1 is too high on the screen
+.player2_too_high:
+mov ax, 1
+jmp .player2_too_high_continue
+
 ;INPUT IFS
+;KEY W
 .player1_input_w:
 mov word bx, [player1_y]
 dec bx
 mov word [player1_y], bx
 jmp .player1_input_w_continue
 
+;KEY S
 .player1_input_s:
 mov word bx, [player1_y]
 inc bx
 mov word [player1_y], bx
 jmp .player1_input_s_continue
 
+;KEY ARROW UP
+.player2_input_up:
+mov word bx, [player2_y]
+dec bx
+mov word [player2_y], bx
+jmp .player2_input_up_continue
+
+;KEY ARROW DOWN
+.player2_input_down:
+mov word bx, [player2_y]
+inc bx
+mov word [player2_y], bx
+jmp .player2_input_down_continue
 .data:
 timer_current dw 0
 i dw 0 ;loop variable
