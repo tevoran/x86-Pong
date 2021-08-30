@@ -10,6 +10,7 @@
 %define RES_Y 200
 %define PLAYER_WIDTH 0x06
 %define PLAYER_HEIGHT 0x20
+%define PLAYER_LOWEST 168
 
 %macro CLS 0
 	mov di, 0x00
@@ -73,6 +74,8 @@
 	je .sync ;reloop until new tick
 		mov word [timer_current], dx ;save new tick value
 %endmacro
+
+
 ;	CODE BEGIN
 ;	
 ;
@@ -98,15 +101,22 @@ main_loop:
 	DRAW_PLAYER1
 	DRAW_PLAYER2
 
-
+	;keeping player 1 inside the screen
 	mov word ax, [player1_y]
 	inc ax 
+	cmp ax, PLAYER_LOWEST
+	;if player is too low on the screen reset him a bit higher
+	jae .player1_too_low
+	.player1_too_low_continue:
 	mov word [player1_y], ax
 	
 	;waiting for the next frame	to start
 	WAIT_FOR_RTC
 jmp main_loop
 
+.player1_too_low:
+mov ax, PLAYER_LOWEST
+jmp .player1_too_low_continue
 
 .data:
 timer_current dw 0
