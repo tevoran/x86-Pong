@@ -21,6 +21,14 @@ mov es, ax; setting the extra segment for pixel drawing purposes
 mov ax, 0x0013
 int 0x10
 
+;initializing keyboard
+call keyboard_check
+
+;activating keyboard
+	mov al, 0xF4
+	out 0x60, al
+
+
 ;main game loop
 main_loop:
 	CLS
@@ -31,22 +39,21 @@ main_loop:
 
 
 	;get keyboard input
-	mov ah,0x00
-	int 16h
+	in al, 0x60
 
-	cmp ah, 0x11 ;Key W
+	cmp al, 0x11 ;Key W
 	je .player1_input_w
 	.player1_input_w_continue:
 
-	cmp ah, 0x1F ;Key S
+	cmp al, 0x1F ;Key S
 	je .player1_input_s
 	.player1_input_s_continue:
 
-	cmp ah, 0x48 ;Key ARROW UP
+	cmp al, 0x48 ;Key ARROW UP
 	je .player2_input_up
 	.player2_input_up_continue:
 
-	cmp ah, 0x50 ;Key ARROW DOWN
+	cmp al, 0x50 ;Key ARROW DOWN
 	je .player2_input_down
 	.player2_input_down_continue:
 
@@ -113,6 +120,18 @@ player1_x dw 20
 player1_y dw 30
 player2_x dw 290
 player2_y dw 60
+
+.functions:
+;checking if keyboard controller is ready
+keyboard_check:
+pusha
+	keyboard_check.loop:
+	xor ax,ax
+	in al,0x64
+	bt ax, 1 ;test if buffer is still full
+	jc keyboard_check.loop
+popa
+ret
 
 ;padding to fill up the bootsector
 times 510 - ($-$$) db 0
