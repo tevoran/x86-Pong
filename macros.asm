@@ -9,6 +9,8 @@
 %define PLAYER_HEIGHT 0x20
 %define PLAYER_LOWEST 168
 %define PLAYER_HIGHEST 0xFFFF
+%define BALL_WIDTH 3
+%define BALL_HEIGHT 3
 
 
 ;functions
@@ -63,6 +65,27 @@
 	mov word [i], ax ;writing loop variable
 	cmp ax, PLAYER_HEIGHT ;check if loop counter is smaller than PLAYER_HEIGHT
 	jl player2_draw_loop	;jump if less
+%endmacro
+
+%macro DRAW_BALL 0
+	mov ax, 0
+	mov word [i], ax
+	ball_draw_loop:
+		mov word ax, RES_X
+		mov word bx, [ball_y]
+		add word bx, [i]
+		mul bx
+		add word ax, [ball_x]
+		mov di, ax
+		mov al, YELLOW
+		mov cx, BALL_WIDTH
+		repe stosb
+
+	mov word ax, [i]
+	inc ax 
+	mov word [i], ax
+	cmp ax, BALL_HEIGHT
+	jl ball_draw_loop
 %endmacro
 
 %macro WAIT_FOR_RTC 0

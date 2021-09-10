@@ -33,13 +33,13 @@ call keyboard_check
 main_loop:
 	CLS
 
-	;drawing the players
+	;drawing stuff
 	DRAW_PLAYER1
 	DRAW_PLAYER2
-
+	DRAW_BALL
 
 	;get keyboard input
-	in al, 0x60
+	in al, 0x60 ;reading current keyboard input
 
 	cmp al, 0x11 ;Key W
 	je .player1_input_w
@@ -49,19 +49,13 @@ main_loop:
 	je .player1_input_s
 	.player1_input_s_continue:
 
-	cmp al, 0x48 ;Key ARROW UP
-	je .player2_input_up
-	.player2_input_up_continue:
-
-	cmp al, 0x50 ;Key ARROW DOWN
-	je .player2_input_down
-	.player2_input_down_continue:
-
 	PLAYER1_SCREEN_COLLISION
 	PLAYER2_SCREEN_COLLISION
 	
 	;waiting for the next frame	to start
 	WAIT_FOR_RTC
+
+
 jmp main_loop
 
 ;SCREEN COLLISION IFS
@@ -100,19 +94,6 @@ inc bx
 mov word [player1_y], bx
 jmp .player1_input_s_continue
 
-;KEY ARROW UP
-.player2_input_up:
-mov word bx, [player2_y]
-dec bx
-mov word [player2_y], bx
-jmp .player2_input_up_continue
-
-;KEY ARROW DOWN
-.player2_input_down:
-mov word bx, [player2_y]
-inc bx
-mov word [player2_y], bx
-jmp .player2_input_down_continue
 .data:
 timer_current dw 0
 i dw 0 ;loop variable
@@ -120,6 +101,8 @@ player1_x dw 20
 player1_y dw 30
 player2_x dw 290
 player2_y dw 60
+ball_x dw 100
+ball_y dw 100
 
 .functions:
 ;checking if keyboard controller is ready
