@@ -39,6 +39,8 @@ main_loop:
 	DRAW_BALL
 
 	;updates
+	UPDATE_BALL_LOCATION
+
 	;get keyboard input
 	in al, 0x60 ;reading current keyboard input
 
@@ -50,14 +52,16 @@ main_loop:
 	je .player1_input_s
 	.player1_input_s_continue:
 
-	;ball update
-	mov word ax, [ball_x]
-	add word ax, [ball_dx]
-	mov word [ball_x], ax
-
 	;collisions
 	PLAYER1_SCREEN_COLLISION
 	PLAYER2_SCREEN_COLLISION
+
+	;ball outside of screen
+	mov word ax, [ball_x]
+	mov bx, RES_X
+	cmp ax, bx
+	ja .ball_out_of_screen
+	.ball_out_of_screen_continue:
 
 	;player 1 ball collision
 	mov word ax, [ball_x]
@@ -110,6 +114,14 @@ mov word [player1_y], bx
 jmp .player1_input_s_continue
 
 ;ball collision ifs
+;ball out of screen
+.ball_out_of_screen:
+mov ax, bx
+shr ax,1 ;division by two
+mov word [ball_x], ax
+jmp .ball_out_of_screen_continue
+
+;with player 1
 .player1_y_ball_check:
 ;check if ball is below the top edge of the paddle
 mov word ax, [ball_y]
@@ -125,7 +137,7 @@ jae .player1_y_ball_check_continue
 	;reflect ball
 	mov word ax, [ball_dx]
 	mov bx, -1
-	imul bx
+	mul bx
 	mov word [ball_dx], ax
 jmp .player1_y_ball_check_continue
 
@@ -136,7 +148,7 @@ i dw 0 ;loop variable
 player1_x dw 20
 player1_y dw 30
 player2_x dw 290
-player2_y dw 60
+player2_y dw 80
 ball_x dw 100
 ball_y dw 100
 ball_dx dw -1

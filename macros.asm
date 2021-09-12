@@ -88,6 +88,12 @@
 	jl ball_draw_loop
 %endmacro
 
+%macro UPDATE_BALL_LOCATION 0
+	mov word ax, [ball_x]
+	add word ax, [ball_dx]
+	mov word [ball_x], ax
+%endmacro
+
 %macro WAIT_FOR_RTC 0
 	;synchronizing game to real time clock (18.2 ticks per sec)
 	.sync:
