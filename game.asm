@@ -64,12 +64,17 @@ main_loop:
 	.ball_out_of_screen_continue:
 
 	;player 1 ball collision
-	mov word ax, [ball_x]
-	mov word bx, [player1_x]
-	add bx, PLAYER_WIDTH
-	cmp ax, bx
-	jle .player1_y_ball_check
-	.player1_y_ball_check_continue:
+	mov cx, 1 
+	call player_ball_check ;player 1 paddle collision
+	mov cx, 2
+	call player_ball_check ;player 2 paddle collision
+
+	;mov word ax, [ball_x]
+	;mov word bx, [player1_x]
+	;add bx, PLAYER_WIDTH
+	;cmp ax, bx
+	;jle .player1_y_ball_check
+	;.player1_y_ball_check_continue:
 	
 	;waiting for the next frame	to start
 	WAIT_FOR_RTC
@@ -122,24 +127,24 @@ mov word [ball_x], ax
 jmp .ball_out_of_screen_continue
 
 ;with player 1
-.player1_y_ball_check:
+;.player1_y_ball_check:
 ;check if ball is below the top edge of the paddle
-mov word ax, [ball_y]
-mov word bx, [player1_y]
-cmp ax, bx
-jl .player1_y_ball_check_continue
+;mov word ax, [ball_y]
+;mov word bx, [player1_y]
+;cmp ax, bx
+;jl .player1_y_ball_check_continue
 
 ;check if ball is above the bottom edge of the paddle
-add bx, PLAYER_HEIGHT
-cmp ax, bx
-jae .player1_y_ball_check_continue
+;add bx, PLAYER_HEIGHT
+;cmp ax, bx
+;jae .player1_y_ball_check_continue
 
 	;reflect ball
-	mov word ax, [ball_dx]
-	mov bx, -1
-	mul bx
-	mov word [ball_dx], ax
-jmp .player1_y_ball_check_continue
+;	mov word ax, [ball_dx]
+;	mov bx, -1
+;	mul bx
+;	mov word [ball_dx], ax
+;jmp .player1_y_ball_check_continue
 
 
 .data:
@@ -153,6 +158,7 @@ ball_x dw 100
 ball_y dw 100
 ball_dx dw -1
 ball_dy dw 0
+ball_dy_i dw 0
 
 .functions:
 ;checking if keyboard controller is ready
@@ -163,6 +169,40 @@ pusha
 	in al,0x64
 	bt ax, 1 ;test if buffer is still full
 	jc keyboard_check.loop
+popa
+ret
+
+;player_ball_collision
+;cx=1 player one collision check
+;else player two collision check
+player_ball_check:
+pusha
+	mov word ax, [ball_x]
+	cmp cx, 1
+		cmove word bx, [player1_x]
+		cmovne word bx, [player2_x]
+	add bx, PLAYER_WIDTH_HALF
+	cmp ax, bx
+	jne .player_y_ball_check_continue
+		;check if ball is below the top edge of the paddle
+		mov word ax, [ball_y]
+		cmp cx, 1
+			cmove word bx, [player1_y]
+			cmovne word bx, [player2_y]
+		cmp ax, bx
+		jl .player_y_ball_check_continue
+
+		;check if ball is above the bottom edge of the paddle
+		add bx, PLAYER_HEIGHT
+		cmp ax, bx
+		jae .player_y_ball_check_continue
+
+			;reflect ball
+			mov word ax, [ball_dx]
+			mov bx, -1
+			mul bx
+			mov word [ball_dx], ax
+	.player_y_ball_check_continue:
 popa
 ret
 

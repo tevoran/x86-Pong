@@ -6,18 +6,20 @@
 %define RES_X 320
 %define RES_Y 200
 %define PLAYER_WIDTH 0x06
+%define PLAYER_WIDTH_HALF 0x03
 %define PLAYER_HEIGHT 0x20
 %define PLAYER_LOWEST 168
 %define PLAYER_HIGHEST 0xFFFF
 %define BALL_WIDTH 3
 %define BALL_HEIGHT 3
+%define BALL_Y_RESOLUTION 10
 
 
 ;functions
 %macro CLS 0
 	mov di, 0x00
 	mov al, BLACK
-	mov cx, 0xFA00
+	mov cx, 0xFA00 ;framebuffer size
 	repe stosb 
 %endmacro 
 
