@@ -46,6 +46,7 @@ main_loop:
 	;get keyboard input
 	in al, 0x60 ;reading current keyboard input
 
+	mov cx, 0 ;resetting player y-speed variable
 	cmp al, 0x11 ;Key W
 	je .player1_input_w
 	.player1_input_w_continue:
@@ -54,18 +55,29 @@ main_loop:
 	je .player1_input_s
 	.player1_input_s_continue:
 
+	mov word [player1_dy], cx
+
 	;collisions
 	PLAYER1_SCREEN_COLLISION
 	PLAYER2_SCREEN_COLLISION
 
 	;ball outside of screen
+	;horizontal
 	mov word ax, [ball_x]
 	mov bx, RES_X
 	cmp ax, bx
 	ja .ball_out_of_screen
 	.ball_out_of_screen_continue:
 
-	;player 1 ball collision
+	;vertical
+	mov word ax, [ball_y]
+	mov bx, RES_Y
+	cmp ax, bx
+	jna .ball_out_of_screen_vertical_continue
+		call reflect_ball_y
+	.ball_out_of_screen_vertical_continue:
+
+	;player ball collision
 	mov cx, 1 
 	call player_ball_check ;player 1 paddle collision
 	mov cx, 2
@@ -104,6 +116,7 @@ jmp .player2_too_high_continue
 mov word bx, [player1_y]
 dec bx
 mov word [player1_y], bx
+mov cx, -1
 jmp .player1_input_w_continue
 
 ;KEY S
@@ -111,6 +124,7 @@ jmp .player1_input_w_continue
 mov word bx, [player1_y]
 inc bx
 mov word [player1_y], bx
+mov cx, 1
 jmp .player1_input_s_continue
 
 ;ball collision ifs
@@ -129,11 +143,12 @@ player1_x dw 20
 player1_y dw 30
 player2_x dw 290
 player2_y dw 80
+player1_dy dw 0
 ball_x dw 100
 ball_y dw 100
 ball_y_float dd 100.6
 ball_dx dw -1
-ball_dy_float dd 0.1 ;gradient
+ball_dy_float dd 0.25 ;gradient
 
 .functions:
 ;checking if keyboard controller is ready
@@ -177,7 +192,18 @@ pusha
 			mov bx, -1
 			mul bx
 			mov word [ball_dx], ax
+
 	.player_y_ball_check_continue:
+popa
+ret
+
+reflect_ball_y:
+pusha
+	fwait
+		fld dword [ball_dy_float]
+		fchs ;change sign
+		fst dword [ball_dy_float]
+	fwait
 popa
 ret
 
