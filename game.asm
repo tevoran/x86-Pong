@@ -28,6 +28,8 @@ call keyboard_check
 	mov al, 0xF4
 	out 0x60, al
 
+;initialize FPU
+finit
 
 ;main game loop
 main_loop:
@@ -68,13 +70,6 @@ main_loop:
 	call player_ball_check ;player 1 paddle collision
 	mov cx, 2
 	call player_ball_check ;player 2 paddle collision
-
-	;mov word ax, [ball_x]
-	;mov word bx, [player1_x]
-	;add bx, PLAYER_WIDTH
-	;cmp ax, bx
-	;jle .player1_y_ball_check
-	;.player1_y_ball_check_continue:
 	
 	;waiting for the next frame	to start
 	WAIT_FOR_RTC
@@ -126,26 +121,6 @@ shr ax,1 ;division by two
 mov word [ball_x], ax
 jmp .ball_out_of_screen_continue
 
-;with player 1
-;.player1_y_ball_check:
-;check if ball is below the top edge of the paddle
-;mov word ax, [ball_y]
-;mov word bx, [player1_y]
-;cmp ax, bx
-;jl .player1_y_ball_check_continue
-
-;check if ball is above the bottom edge of the paddle
-;add bx, PLAYER_HEIGHT
-;cmp ax, bx
-;jae .player1_y_ball_check_continue
-
-	;reflect ball
-;	mov word ax, [ball_dx]
-;	mov bx, -1
-;	mul bx
-;	mov word [ball_dx], ax
-;jmp .player1_y_ball_check_continue
-
 
 .data:
 timer_current dw 0
@@ -156,9 +131,9 @@ player2_x dw 290
 player2_y dw 80
 ball_x dw 100
 ball_y dw 100
+ball_y_float dd 100.6
 ball_dx dw -1
-ball_dy dw 0
-ball_dy_i dw 0
+ball_dy_float dd 0.1 ;gradient
 
 .functions:
 ;checking if keyboard controller is ready

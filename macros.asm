@@ -91,9 +91,20 @@
 %endmacro
 
 %macro UPDATE_BALL_LOCATION 0
+	;X - axis
 	mov word ax, [ball_x]
 	add word ax, [ball_dx]
 	mov word [ball_x], ax
+
+	;Y - axis
+	fwait
+		fld dword [ball_y_float] ;load current ball y-value
+		fadd dword [ball_dy_float] ;add delta value
+		fst dword [ball_y_float] ;save new ball y-value
+		fld dword [ball_y_float] ;load ball y-value again
+		fistp word [ball_y] ;convert ball y-value to integer and save it into memory
+	fwait
+
 %endmacro
 
 %macro WAIT_FOR_RTC 0
