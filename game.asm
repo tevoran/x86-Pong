@@ -63,8 +63,11 @@ main_loop:
 	mov word [player1_dy], cx
 
 	;collisions
-	PLAYER1_SCREEN_COLLISION
-	PLAYER2_SCREEN_COLLISION
+	mov si, player1_y
+	call player_screen_collision
+	mov si, player2_y
+	call player_screen_collision
+
 
 	;ball outside of screen
 	;horizontal
@@ -93,27 +96,6 @@ main_loop:
 
 
 jmp main_loop
-
-;SCREEN COLLISION IFS
-;if player 1 is too low on the screen
-.player1_too_low:
-mov ax, PLAYER_LOWEST
-jmp .player1_too_low_continue
-
-;if player 1 is too high on the screen
-.player1_too_high:
-mov ax, 1
-jmp .player1_too_high_continue
-
-;if player 2 is too low on the screen
-.player2_too_low:
-mov ax, PLAYER_LOWEST
-jmp .player2_too_low_continue
-
-;if player 1 is too high on the screen
-.player2_too_high:
-mov ax, 1
-jmp .player2_too_high_continue
 
 ;INPUT IFS
 ;KEY W
@@ -156,6 +138,34 @@ ball_dx dw -1
 ball_dy_float dd 0.25 ;gradient
 
 .functions:
+;player screen collision
+;si=address of the player1/2 y-value
+player_screen_collision:
+	;keeping player 1 inside the screen
+	mov word ax, [si]
+	;if player is too low on the screen set him a bit higher
+	cmp ax, PLAYER_LOWEST
+	jae .player_screen_collision_too_low
+	.player_screen_collision_too_low_continue:
+
+	;if player is too high on the screen set him a bit lower
+	cmp ax, 0
+	je .player_screen_collision_too_high
+	.player_screen_collision_too_high_continue:
+	mov word [si], ax
+ret
+
+;if player is too low on the screen
+.player_screen_collision_too_low:
+mov ax, PLAYER_LOWEST
+jmp .player_screen_collision_too_low_continue
+
+;if player is too high on the screen
+.player_screen_collision_too_high:
+mov ax, 1
+jmp .player_screen_collision_too_high_continue
+
+
 ;player_ball_collision
 ;cx=1 player one collision check
 ;else player two collision check

@@ -117,33 +117,3 @@
 	je .sync ;reloop until new tick
 		mov word [timer_current], dx ;save new tick value
 %endmacro
-
-%macro PLAYER1_SCREEN_COLLISION 0
-	;keeping player 1 inside the screen
-	mov word ax, [player1_y]
-	;if player is too low on the screen set him a bit higher
-	cmp ax, PLAYER_LOWEST
-	jae .player1_too_low
-	.player1_too_low_continue:
-
-	;if player is too high on the screen set him a bit lower
-	cmp ax, 0
-	je .player1_too_high
-	.player1_too_high_continue:
-	mov word [player1_y], ax
-%endmacro
-
-%macro PLAYER2_SCREEN_COLLISION 0
-	;keeping player 1 inside the screen
-	mov word ax, [player2_y]
-	;if player is too low on the screen set him a bit higher
-	cmp ax, PLAYER_LOWEST
-	jae .player2_too_low
-	.player2_too_low_continue:
-
-	;if player is too high on the screen set him a bit lower
-	cmp ax, 0
-	je .player2_too_high
-	.player2_too_high_continue:
-	mov word [player2_y], ax
-%endmacro
