@@ -41,8 +41,14 @@ main_loop:
 	CLS
 
 	;drawing stuff
-	DRAW_PLAYER1
-	DRAW_PLAYER2
+	mov si, player1_y
+	mov dx, word [player1_x]
+	call draw_player
+
+	mov si, player2_y
+	mov dx, word [player2_x]
+	call draw_player
+
 	DRAW_BALL
 
 	;updates
@@ -138,6 +144,34 @@ ball_dx dw -1
 ball_dy_float dd 0.25 ;gradient
 
 .functions:
+;drawing player
+;si=adress of the player paddle's y-position
+;dx=player paddle's x-position
+draw_player:
+	xor ax,ax
+	mov word [i], ax ;reset loop variable
+	player_draw_loop:
+		;calculating framebuffer offset
+		mov ax, RES_X
+		mov word bx, [si] ;loading y-position
+		add word bx, [i]
+			push dx ;save dx because the multiplication breaks it
+		mul bx
+			pop dx
+		add ax, dx ;adding player x-position
+		mov di, ax ;writing the framebuffer offset for the actual writing purposes
+		mov al, YELLOW ;color code within the 256 color palette
+		mov cx, PLAYER_WIDTH ;number of repitions in x direction
+		repe stosb ;write the line of player paddle
+
+	;incrementing loop counting variable
+	mov word ax, [i] ;reading loop variable
+	inc ax ;incrementing loop variable
+	mov word [i], ax ;writing loop variable
+	cmp ax, PLAYER_HEIGHT ;check if loop counter is smaller than PLAYER_HEIGHT
+	jl player_draw_loop	;jump if less
+ret
+
 ;player screen collision
 ;si=address of the player1/2 y-value
 player_screen_collision:
