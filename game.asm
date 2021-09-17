@@ -137,11 +137,12 @@ player1_y dw 30
 player2_x dw 290
 player2_y dw 80
 player1_dy dw 0
+player2_dy dw 0
 ball_x dw 100
 ball_y dw 100
 ball_y_float dd 100.6
 ball_dx dw -1
-ball_dy_float dd 0.25 ;gradient
+ball_dy_float dd 0 ;gradient
 
 .functions:
 ;drawing player
@@ -229,6 +230,20 @@ jne .player_y_ball_check_continue
 		mov bx, -1
 		mul bx
 		mov word [ball_dx], ax
+
+		;add the y-speed of the paddle
+		cmp cx, 1 ;if player1
+		fwait
+		jne .player2_y_add
+			fild word [player1_dy]
+			jmp .player_add_continue
+
+		.player2_y_add:
+		fild word [player2_dy]
+
+		.player_add_continue:
+		fadd dword [ball_dy_float]
+		fstp dword [ball_dy_float]
 
 .player_y_ball_check_continue:
 ret
