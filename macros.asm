@@ -5,6 +5,8 @@
 
 %define RES_X 320
 %define RES_Y 200
+%define PLAYER1_X 20
+%define PLAYER2_X 290 
 %define PLAYER_WIDTH 0x06
 %define PLAYER_WIDTH_HALF 0x03
 %define PLAYER_HEIGHT 0x20
@@ -17,14 +19,14 @@
 
 ;functions
 %macro CLS 0
-	mov di, 0x00
+	xor di,di
 	mov al, BLACK
 	mov cx, 0xFA00 ;framebuffer size
 	repe stosb 
 %endmacro 
 
 %macro DRAW_PLAYER1 0
-	mov ax, 0x00
+	xor ax,ax
 	mov word [i], ax ;reset loop variable
 	player1_draw_loop:
 		;calculating framebuffer offset
@@ -32,7 +34,7 @@
 		mov word bx, [player1_y]
 		add word bx, [i]
 		mul bx
-		add word ax, [player1_x]
+		add ax, PLAYER1_X
 		mov di, ax ;writing the framebuffer offset for the actual writing purposes
 		mov al, YELLOW ;color code within the 256 color palette
 		mov cx, PLAYER_WIDTH ;number of repitions in x direction
@@ -47,7 +49,7 @@
 %endmacro
 
 %macro DRAW_PLAYER2 0
-	mov ax, 0x00
+	xor ax,ax
 	mov word [i], ax ;reset loop variable
 	player2_draw_loop:
 		;calculating framebuffer offset
@@ -55,7 +57,7 @@
 		mov word bx, [player2_y]
 		add word bx, [i]
 		mul bx
-		add word ax, [player2_x]
+		add ax, PLAYER2_X
 		mov di, ax ;writing the framebuffer offset for the actual writing purposes
 		mov al, YELLOW ;color code within the 256 color palette
 		mov cx, PLAYER_WIDTH ;number of repitions in x direction
@@ -70,7 +72,7 @@
 %endmacro
 
 %macro DRAW_BALL 0
-	mov ax, 0
+	xor ax,ax
 	mov word [i], ax
 	ball_draw_loop:
 		mov word ax, RES_X
@@ -103,14 +105,13 @@
 		fst dword [ball_y_float] ;save new ball y-value
 		fld dword [ball_y_float] ;load ball y-value again
 		fistp word [ball_y] ;convert ball y-value to integer and save it into memory
-	fwait
 
 %endmacro
 
 %macro WAIT_FOR_RTC 0
 	;synchronizing game to real time clock (18.2 ticks per sec)
 	.sync:
-		mov ah, 0x00
+		xor ah,ah
 		int 0x1a ;returns the current tick count in dx
 		cmp word [timer_current], dx
 	je .sync ;reloop until new tick

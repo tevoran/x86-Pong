@@ -10,7 +10,7 @@
 jmp start ;setting code segment
 
 start:
-mov ax, 0x00
+xor ax, ax
 mov ds, ax; setting data segment to zero
 mov ss, ax; setting up stack segment
 mov sp, 0x7BFF ;setting up stackpointer (just before the loaded bootsector)
@@ -22,7 +22,12 @@ mov ax, 0x0013
 int 0x10
 
 ;initializing keyboard
-call keyboard_check
+;wait until keyboard is ready
+keyboard_check.loop:
+xor ax,ax
+in al,0x64
+bt ax, 1 ;test if buffer is still full
+jc keyboard_check.loop
 
 ;activating keyboard
 	mov al, 0xF4
@@ -46,7 +51,7 @@ main_loop:
 	;get keyboard input
 	in al, 0x60 ;reading current keyboard input
 
-	mov cx, 0 ;resetting player y-speed variable
+	xor cx, cx ;resetting player y-speed variable
 	cmp al, 0x11 ;Key W
 	je .player1_input_w
 	.player1_input_w_continue:
@@ -116,7 +121,7 @@ jmp .player2_too_high_continue
 mov word bx, [player1_y]
 dec bx
 mov word [player1_y], bx
-mov cx, -1
+mov cx, -1 ;set player y direction
 jmp .player1_input_w_continue
 
 ;KEY S
@@ -124,7 +129,7 @@ jmp .player1_input_w_continue
 mov word bx, [player1_y]
 inc bx
 mov word [player1_y], bx
-mov cx, 1
+mov cx, 1 ;set player y direction
 jmp .player1_input_s_continue
 
 ;ball collision ifs
@@ -151,60 +156,44 @@ ball_dx dw -1
 ball_dy_float dd 0.25 ;gradient
 
 .functions:
-;checking if keyboard controller is ready
-keyboard_check:
-pusha
-	keyboard_check.loop:
-	xor ax,ax
-	in al,0x64
-	bt ax, 1 ;test if buffer is still full
-	jc keyboard_check.loop
-popa
-ret
-
 ;player_ball_collision
 ;cx=1 player one collision check
 ;else player two collision check
 player_ball_check:
-pusha
-	mov word ax, [ball_x]
+mov word ax, [ball_x]
+cmp cx, 1
+	cmove word bx, [player1_x]
+	cmovne word bx, [player2_x]
+add bx, PLAYER_WIDTH_HALF
+cmp ax, bx
+jne .player_y_ball_check_continue
+	;check if ball is below the top edge of the paddle
+	mov word ax, [ball_y]
 	cmp cx, 1
-		cmove word bx, [player1_x]
-		cmovne word bx, [player2_x]
-	add bx, PLAYER_WIDTH_HALF
+		cmove word bx, [player1_y]
+		cmovne word bx, [player2_y]
 	cmp ax, bx
-	jne .player_y_ball_check_continue
-		;check if ball is below the top edge of the paddle
-		mov word ax, [ball_y]
-		cmp cx, 1
-			cmove word bx, [player1_y]
-			cmovne word bx, [player2_y]
-		cmp ax, bx
-		jl .player_y_ball_check_continue
+	jl .player_y_ball_check_continue
 
-		;check if ball is above the bottom edge of the paddle
-		add bx, PLAYER_HEIGHT
-		cmp ax, bx
-		jae .player_y_ball_check_continue
+	;check if ball is above the bottom edge of the paddle
+	add bx, PLAYER_HEIGHT
+	cmp ax, bx
+	jae .player_y_ball_check_continue
 
-			;reflect ball
-			mov word ax, [ball_dx]
-			mov bx, -1
-			mul bx
-			mov word [ball_dx], ax
+		;reflect ball
+		mov word ax, [ball_dx]
+		mov bx, -1
+		mul bx
+		mov word [ball_dx], ax
 
-	.player_y_ball_check_continue:
-popa
+.player_y_ball_check_continue:
 ret
 
 reflect_ball_y:
-pusha
-	fwait
-		fld dword [ball_dy_float]
-		fchs ;change sign
-		fst dword [ball_dy_float]
-	fwait
-popa
+fwait
+	fld dword [ball_dy_float]
+	fchs ;change sign
+	fst dword [ball_dy_float]
 ret
 
 ;padding to fill up the bootsector
