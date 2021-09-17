@@ -66,7 +66,7 @@ main_loop:
 	je .player1_input_s
 	.player1_input_s_continue:
 
-	mov word [player1_dy], cx
+	mov word [player1_dy], cx ;writing player y-speed
 
 	;collisions
 	mov si, player1_y
@@ -97,6 +97,8 @@ main_loop:
 	mov cx, 2
 	call player_ball_check ;player 2 paddle collision
 	
+	ENEMY_AI
+
 	;waiting for the next frame	to start
 	WAIT_FOR_RTC
 
@@ -133,13 +135,13 @@ jmp .ball_out_of_screen_continue
 timer_current dw 0
 i dw 0 ;loop variable
 player1_x dw 20
-player1_y dw 30
+player1_y dw 80
 player2_x dw 290
 player2_y dw 80
 player1_dy dw 0
 player2_dy dw 0
 ball_x dw 100
-ball_y dw 100
+ball_y dw 85
 ball_y_float dd 100.6
 ball_dx dw -1
 ball_dy_float dd 0 ;gradient

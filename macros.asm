@@ -71,3 +71,25 @@
 	je .sync ;reloop until new tick
 		mov word [timer_current], dx ;save new tick value
 %endmacro
+
+%macro ENEMY_AI 0
+	xor cx,cx
+
+	mov word ax, [player2_y]
+	mov word bx, [ball_y]
+	cmp ax, bx
+	jae .enemy_ai_below
+		;if ball is above the enemy
+		mov cx, 1
+		inc ax
+		jmp .enemy_ai_done
+
+	;if ball is below the enemy
+	.enemy_ai_below:
+	mov cx, -1
+	dec ax
+	
+	.enemy_ai_done:
+	mov word [player2_y], ax
+	mov word [player2_dy], cx
+%endmacro
