@@ -53,12 +53,16 @@
 	mov word [ball_x], ax
 
 	;Y - axis
-	fwait
-		fld dword [ball_y_float] ;load current ball y-value
-		fadd dword [ball_dy_float] ;add delta value
-		fst dword [ball_y_float] ;save new ball y-value
-		fld dword [ball_y_float] ;load ball y-value again
-		fistp word [ball_y] ;convert ball y-value to integer and save it into memory
+	mov ax, word [ball_y]
+	mov bx, word [ball_dy]
+	add ax, bx
+	mov word [ball_y], ax
+	;fwait
+	;	fld dword [ball_y_float] ;load current ball y-value
+	;	fadd dword [ball_dy_float] ;add delta value
+	;	fst dword [ball_y_float] ;save new ball y-value
+	;	fld dword [ball_y_float] ;load ball y-value again
+	;	fistp word [ball_y] ;convert ball y-value to integer and save it into memory
 
 %endmacro
 
@@ -66,7 +70,9 @@
 	;synchronizing game to real time clock (18.2 ticks per sec)
 	.sync:
 		xor ah,ah
+		sti
 		int 0x1a ;returns the current tick count in dx
+		cli
 		cmp word [timer_current], dx
 	je .sync ;reloop until new tick
 		mov word [timer_current], dx ;save new tick value

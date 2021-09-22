@@ -1,25 +1,27 @@
-%include "macros.asm"
 [BITS 16]
-
 [ORG 0x7C00]
 
+%include "macros.asm"
 
 ;	CODE BEGIN
 ;	
 ;
-jmp start ;setting code segment
+jmp 0x00:start ;setting code segment
 
 start:
+cli
 xor ax, ax
 mov ds, ax; setting data segment to zero
 mov ss, ax; setting up stack segment
-mov sp, 0x7BFF ;setting up stackpointer (just before the loaded bootsector)
+mov sp, 0x7C00 ;setting up stackpointer (just before the loaded bootsector)
 mov ax, 0xA000 ;beginning of the framebuffer
 mov es, ax; setting the extra segment for pixel drawing purposes
 
 ;setting 320x200 256 colors graphics mode
 mov ax, 0x0013
-int 0x10
+sti
+int 0x10 
+cli
 
 ;initializing keyboard
 ;wait until keyboard is ready
@@ -32,9 +34,6 @@ jc keyboard_check.loop
 ;activating keyboard
 	mov al, 0xF4
 	out 0x60, al
-
-;initialize FPU
-finit
 
 ;main game loop
 main_loop:
@@ -128,23 +127,10 @@ jmp .player1_input_s_continue
 mov ax, bx
 shr ax,1 ;division by two
 mov word [ball_x], ax
+xor ax, ax
+mov word [ball_dy], ax ;reset y-speed
 jmp .ball_out_of_screen_continue
 
-
-.data:
-timer_current dw 0
-i dw 0 ;loop variable
-player1_x dw 20
-player1_y dw 80
-player2_x dw 290
-player2_y dw 80
-player1_dy dw 0
-player2_dy dw 0
-ball_x dw 100
-ball_y dw 85
-ball_y_float dd 100.6
-ball_dx dw -1
-ball_dy_float dd 0 ;gradient
 
 .functions:
 ;drawing player
@@ -235,28 +221,36 @@ jne .player_y_ball_check_continue
 
 		;add the y-speed of the paddle
 		cmp cx, 1 ;if player1
-		fwait
-		jne .player2_y_add
-			fild word [player1_dy]
-			jmp .player_add_continue
-
-		.player2_y_add:
-		fild word [player2_dy]
-
-		.player_add_continue:
-		fadd dword [ball_dy_float]
-		fstp dword [ball_dy_float]
+			cmove ax, word [player1_dy]
+			cmovne ax, word [player2_dy]
+		add ax, word [ball_dy]
+		mov word [ball_dy], ax
 
 .player_y_ball_check_continue:
 ret
 
 reflect_ball_y:
-fwait
-	fld dword [ball_dy_float]
-	fchs ;change sign
-	fst dword [ball_dy_float]
+	mov word ax, [ball_dy]
+	mov bx, -1
+	mul bx
+	mov word [ball_dy], ax
 ret
 
+.data:
+timer_current dw 0
+i dw 0 ;loop variable
+player1_x dw 20
+player1_y dw 80
+player2_x dw 290
+player2_y dw 80
+player1_dy dw 0
+player2_dy dw 0
+ball_x dw 100
+ball_y dw 85
+ball_dy dw 0
+ball_dx dw -1
+
+MARK dq 0xFFFFFFFF
 ;padding to fill up the bootsector
 times 510 - ($-$$) db 0
 
